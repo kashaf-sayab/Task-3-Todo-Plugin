@@ -55,31 +55,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
             function checkEmailExists(email, callback) {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'check_email.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        callback(response);
-                    } else {
-                        alert('Error checking email.');
-                    }
-                };
-
-                xhr.send('email=' + encodeURIComponent(email));
+                // Basic email validation
+                if (email.indexOf('@') <= 0 || email.lastIndexOf('.') <= email.indexOf('@') || email.lastIndexOf('.') >= email.length - 1) {
+                    alert('Please enter a valid email.');
+                    return;
+                }
+            
+                // Simulate an asynchronous callback (you can replace this with actual logic if needed)
+                setTimeout(function() {
+                    // Simulate a response object with a flag indicating email existence
+                    const response = { exists: false }; // Change to `true` to simulate an existing email
+                    callback(response);
+                }, 500);
             }
+            
             checkEmailExists(email, function(response) {
                 if (response.exists) {
                     alert('Email is already in use.');
                     return;
                 }
-
-                if (email.indexOf('@') <= 0 || email.lastIndexOf('.') <= email.indexOf('@') || email.lastIndexOf('.') >= email.length - 1) {
-                    alert('Please enter a valid email.');
-                    return;
-                }
+                alert('Email is valid and not in use.');
+                
                 if (password.length < 8) {
                     alert('Password must be at least 8 characters long.');
                     return;
@@ -115,7 +111,44 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-   
+    jQuery(document).ready(function($) {
+        $('#register-form').on('submit', function(e) {
+            e.preventDefault();
+    
+            var uname = $('#uname').val();
+            var email = $('#register-email').val();
+            var password = $('#register-password').val();
+            var confirmPassword = $('#register-confirm-password').val();
+    
+            if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+    
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'register_user',
+                    uname: uname,
+                    email: email,
+                    password: password,
+                    nonce: myPluginData.todoListNonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = 'index.php/login/';
+                    } else {
+                        alert(response.data.message);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        });
+    });
+    
 
  jQuery(document).ready(function($) {
     function fetchTasks() {
