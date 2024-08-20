@@ -9,15 +9,15 @@ Author URI:  https://example.com/
 License:     GPL2
 */
 
-// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Include the main class file
+
 include_once plugin_dir_path(__FILE__) . 'includes/class-login-todo-plugin.php';
 
-// Initialize the core functionality
+require_once plugin_dir_path( __FILE__ ) . 'includes/table.php';
+
 function run_login_todo_plugin() {
     $plugin = new login_todo_plugin();
     $plugin->run();
