@@ -21,7 +21,12 @@ class login_todo_Plugin_Public {
         ));
     }
 
-    public function display_registration_form() {
+     public function display_registration_form() {
+        if (is_user_logged_in() && !current_user_can('administrator')) {
+        wp_redirect(home_url('index.php/to-do-list/'));
+        exit;
+    }
+
         ob_start();
         ?>
          <div class="container">
@@ -67,6 +72,10 @@ class login_todo_Plugin_Public {
     }
     
     public function display_login_form() {
+        if (is_user_logged_in() && !current_user_can('administrator')) {
+            wp_redirect(home_url('index.php/to-do-list/'));
+            exit;
+        }
         ob_start();
         ?>
         <div class="container">
