@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
+
     function showMessage(message, isSuccess) {
         const messageElement = document.getElementById('message');
         
@@ -62,24 +63,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (registerForm) {
         registerForm.addEventListener('submit', function(event) {
             event.preventDefault();
+
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
 
-            function checkEmailExists(email) {
+            function checkEmailExists(email, callback) {
                 if (email.indexOf('@') <= 0 || email.lastIndexOf('.') <= email.indexOf('@') || email.lastIndexOf('.') >= email.length - 1) {
                     showMessage('Please enter a valid email.', false);
                     return;
                 }
-            }
             
+                setTimeout(function() {
+                    const response = { exists: false }; 
+                    callback(response);
+                }, 500);
+            }
+
             checkEmailExists(email, function(response) {
                 if (response.exists) {
                     showMessage('Email is already in use.', false);
                     return;
                 }
-                showMessage('Email is valid and not in use.', true);
-                
+
                 if (password.length < 8) {
                     showMessage('Password must be at least 8 characters long.', false);
                     return;
@@ -96,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (password[i] >= '0' && password[i] <= '9') {
                         hasNumber = true;
                     }
-                    if (['@', '$', '!','#', '%', '*', '?', '&'].includes(password[i])) {
+                    if (['@', '$', '!', '#', '%', '*', '?', '&'].includes(password[i])) {
                         hasSpecialChar = true;
                     }
                 }
@@ -105,55 +111,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     showMessage('Password must include at least one uppercase letter, one number, and one special character.', false);
                     return;
                 }
+
                 if (password !== confirmPassword) {
                     showMessage('Passwords do not match.', false);
                     return;
                 }
 
-                showMessage('Registration successful!', true);
-                registerForm.submit();
+                submitFormViaAjax(email, password);
             });
         });
     }
 
-    jQuery(document).ready(function($) {
-        $('#register-form').on('submit', function(e) {
-            e.preventDefault();
-    
-            var uname = $('#uname').val();
-            var email = $('#register-email').val();
-            var password = $('#register-password').val();
-            var confirmPassword = $('#register-confirm-password').val();
-    
-            if (password !== confirmPassword) {
-                showMessage('Passwords do not match.', false);
-                return;
-            }
-    
-            $.ajax({
-                url: myPluginData.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'register_user',
-                    uname: uname,
-                    email: email,
-                    password: password,
-                    nonce: myPluginData.todoListNonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        window.location.href = 'index.php/login/';
-                    } else {
-                        showMessage(response.data.message, false);
-                    }
-                },
-                error: function() {
-                    showMessage('An error occurred. Please try again.', false);
-                }
-            });
-        });
-    });
+    function submitFormViaAjax(email, password) {
+        var uname = document.getElementById('uname').value;
 
+        jQuery.ajax({
+            url: myPluginData.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'register_user',
+                uname: uname,
+                email: email,
+                password: password,
+                nonce: myPluginData.todoListNonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Registration successful! Redirecting to login...', true);
+                    setTimeout(function() {
+                        window.location.href = 'index.php/login/';
+                    }, 1000);
+                } else {
+                    showMessage(response.data.message, false);
+                }
+            },
+            error: function() {
+                showMessage('An error occurred. Please try again.', false);
+            }
+        });
+    }
+    
     jQuery(document).ready(function($) {
         function fetchTasks() {
             $.ajax({
