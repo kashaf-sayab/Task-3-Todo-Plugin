@@ -8,7 +8,7 @@ class login_todo_Plugin_Public {
     private $version = '1.0.0';
 
     public function __construct() {
-        // Initialize your class or setup hooks if needed
+        
     }
 
     public function enqueue_assets() {
@@ -32,6 +32,7 @@ class login_todo_Plugin_Public {
          <div class="container">
             <form action="register.php" method="POST" id="register-form">
                 <h1>Sign up!</h1>
+                <div id="message" class="message"></div>
                 <label for="user-name"> User Name</label><br>
                 <input type="text" id="uname" name="uname" size="50" placeholder="Enter your name" title="User-Name"><br>
                 <label for="register-email"> Email</label><br>
@@ -81,6 +82,7 @@ class login_todo_Plugin_Public {
         <div class="container">
             <form action="login.php" method="POST" id="login-form">
                 <h1>Sign in!</h1>
+                <div id="message" class="message"></div>
                 <label for="email">Email:</label><br>
                 <input type="email" name="email" id="login-email" placeholder="Enter your email here!" size="50" required ><br>
                 <label for="password">Password:</label><br>
@@ -118,12 +120,13 @@ class login_todo_Plugin_Public {
         ?>
         <div class="todo-list-container">
             <h2>My To-Do List</h2>
+            <div id="message" class="message"></div>
             <form id="todo-form">
                 <input type="text" id="todo-item" placeholder="Add a new item" required>
                 <button type="submit">Add</button>
             </form>
             <ul id="todo-list">
-                <!-- JavaScript will populate this list -->
+                
             </ul>
         </div>
         <?php

@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const messageElement = document.getElementById('message'); 
+
+    function showMessage(message, isSuccess) {
+        messageElement.textContent = message;
+        messageElement.style.color = isSuccess ? 'blue' : 'red'; 
+        messageElement.style.display = 'block';
+    }
 
     if (loginForm) {
         loginForm.addEventListener('submit', function(event) {
@@ -8,15 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             if (email === '' || password === '') {
-                alert('Please fill in all fields.');
+                showMessage('Please fill in all fields.', false);
                 return;
-            }
-            else{
-            alert('you successfuly login.');
-            loginForm.submit();
+            } else {
+                showMessage('You have successfully logged in.', true);
+                loginForm.submit();
             }
         });
     }
+
     jQuery(document).ready(function($) {
         $('#login-form').on('submit', function(e) {
             e.preventDefault();
@@ -37,16 +44,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (response.success) {
                         window.location.href = 'index.php/to-do-list/';
                     } else {
-                        alert(response.data.message);
+                        showMessage(response.data.message, false);
                     }
                 },
                 error: function() {
-                    alert('An error occurred. Please try again.');
+                    showMessage('An error occurred. Please try again.', false);
                 }
             });
         });
     });
-    
 
     if (registerForm) {
         registerForm.addEventListener('submit', function(event) {
@@ -54,30 +60,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
-            function checkEmailExists(email, callback) {
-                // Basic email validation
+
+            function checkEmailExists(email) {
                 if (email.indexOf('@') <= 0 || email.lastIndexOf('.') <= email.indexOf('@') || email.lastIndexOf('.') >= email.length - 1) {
-                    alert('Please enter a valid email.');
+                    showMessage('Please enter a valid email.', false);
                     return;
                 }
-            
-                // Simulate an asynchronous callback (you can replace this with actual logic if needed)
-                setTimeout(function() {
-                    // Simulate a response object with a flag indicating email existence
-                    const response = { exists: false }; // Change to `true` to simulate an existing email
-                    callback(response);
-                }, 500);
             }
             
             checkEmailExists(email, function(response) {
                 if (response.exists) {
-                    alert('Email is already in use.');
+                    showMessage('Email is already in use.', false);
                     return;
                 }
-                alert('Email is valid and not in use.');
+                showMessage('Email is valid and not in use.', true);
                 
                 if (password.length < 8) {
-                    alert('Password must be at least 8 characters long.');
+                    showMessage('Password must be at least 8 characters long.', false);
                     return;
                 }
 
@@ -92,25 +91,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (password[i] >= '0' && password[i] <= '9') {
                         hasNumber = true;
                     }
-                    if (['@', '$', '!', '%', '*', '?', '&'].includes(password[i])) {
+                    if (['@', '$', '!','#', '%', '*', '?', '&'].includes(password[i])) {
                         hasSpecialChar = true;
                     }
                 }
 
                 if (!hasUppercase || !hasSpecialChar || !hasNumber) {
-                    alert('Password must include at least one uppercase letter, one number, and one special character.');
+                    showMessage('Password must include at least one uppercase letter, one number, and one special character.', false);
                     return;
                 }
                 if (password !== confirmPassword) {
-                    alert('Passwords do not match.');
+                    showMessage('Passwords do not match.', false);
                     return;
                 }
 
-                alert('Registration successful!');
+                showMessage('Registration successful!', true);
                 registerForm.submit();
             });
         });
     }
+
     jQuery(document).ready(function($) {
         $('#register-form').on('submit', function(e) {
             e.preventDefault();
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var confirmPassword = $('#register-confirm-password').val();
     
             if (password !== confirmPassword) {
-                alert('Passwords do not match.');
+                showMessage('Passwords do not match.', false);
                 return;
             }
     
@@ -139,143 +139,143 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (response.success) {
                         window.location.href = 'index.php/login/';
                     } else {
-                        alert(response.data.message);
+                        showMessage(response.data.message, false);
                     }
                 },
                 error: function() {
-                    alert('An error occurred. Please try again.');
+                    showMessage('An error occurred. Please try again.', false);
                 }
             });
         });
     });
+
+    jQuery(document).ready(function($) {
+        function fetchTasks() {
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'fetch_todo_tasks',
+                    nonce: myPluginData.todoListNonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#todo-list').empty();
+                        response.data.tasks.forEach(function(task) {
+                            $('#todo-list').append(
+                                `<li class="todo-item" data-id="${task.id}">
+                                    <input type="checkbox" class="todo-item__checkbox" ${task.status === 'completed' ? 'checked' : ''}>
+                                    <span class="todo-item__text">${task.task}</span>
+                                    <button class="todo-item__delete">Delete</button>
+                                    <select class="todo-item__status">
+                                        <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    </select>
+                                </li>`
+                            );
+                        });
+                    }
+                }
+            });
+        }
+
     
+        fetchTasks();
 
- jQuery(document).ready(function($) {
-    function fetchTasks() {
-        $.ajax({
-            url: myPluginData.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'fetch_todo_tasks',
-                nonce: myPluginData.todoListNonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#todo-list').empty();
-                    response.data.tasks.forEach(function(task) {
-                        $('#todo-list').append(
-                            `<li class="todo-item" data-id="${task.id}">
-                                <input type="checkbox" class="todo-item__checkbox" ${task.status === 'completed' ? 'checked' : ''}>
-                                <span class="todo-item__text">${task.task}</span>
-                                <button class="todo-item__delete">Delete</button>
-                                <select class="todo-item__status">
-                                    <option value="pending" ${task.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>Completed</option>
-                                </select>
-                            </li>`
-                        );
-                    });
+        $('#todo-form').on('submit', function(e) {
+            e.preventDefault();
+            var task = $('#todo-item').val();
+
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'add_todo_task',
+                    nonce: myPluginData.todoListNonce,
+                    task: task
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#todo-item').val('');
+                        showMessage(response.data.message, true);
+                        fetchTasks();
+                    } else {
+                        showMessage(response.data.message, false);
+                    }
                 }
-            }
+            });
         });
-    }
 
-    // Fetch tasks on page load
-    fetchTasks();
+        // Delete task
+        $('#todo-list').on('click', '.todo-item__delete', function() {
+            var taskId = $(this).closest('.todo-item').data('id');
 
-    // Add new task
-    $('#todo-form').on('submit', function(e) {
-        e.preventDefault();
-        var task = $('#todo-item').val();
-
-        $.ajax({
-            url: myPluginData.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'add_todo_task',
-                nonce: myPluginData.todoListNonce,
-                task: task
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#todo-item').val('');
-                    fetchTasks();
-                } else {
-                    alert(response.data.message);
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'delete_todo_task',
+                    nonce: myPluginData.todoListNonce,
+                    task_id: taskId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showMessage(response.data.message, true);
+                        fetchTasks();
+                    } else {
+                        showMessage(response.data.message, false);
+                    }
                 }
-            }
+            });
         });
-    });
 
-    // Delete task
-    $('#todo-list').on('click', '.todo-item__delete', function() {
-        var taskId = $(this).closest('.todo-item').data('id');
+        // Update task status
+        $('#todo-list').on('change', '.todo-item__status', function() {
+            var taskId = $(this).closest('.todo-item').data('id');
+            var status = $(this).val();
 
-        $.ajax({
-            url: myPluginData.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'delete_todo_task',
-                nonce: myPluginData.todoListNonce,
-                task_id: taskId
-            },
-            success: function(response) {
-                if (response.success) {
-                    fetchTasks();
-                } else {
-                    alert(response.data.message);
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'update_todo_task',
+                    nonce: myPluginData.todoListNonce,
+                    task_id: taskId,
+                    status: status
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showMessage(response.data.message, true);
+                        fetchTasks();
+                    } else {
+                        showMessage(response.data.message, false);
+                    }
                 }
-            }
+            });
         });
-    });
 
-    // Update task status
-    $('#todo-list').on('change', '.todo-item__status', function() {
-        var taskId = $(this).closest('.todo-item').data('id');
-        var status = $(this).val();
+        // Toggle task completion
+        $('#todo-list').on('change', '.todo-item__checkbox', function() {
+            var taskId = $(this).closest('.todo-item').data('id');
+            var status = $(this).is(':checked') ? 'completed' : 'pending';
 
-        $.ajax({
-            url: myPluginData.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'update_todo_task',
-                nonce: myPluginData.todoListNonce,
-                task_id: taskId,
-                status: status
-            },
-            success: function(response) {
-                if (response.success) {
-                    fetchTasks();
-                } else {
-                    alert(response.data.message);
+            $.ajax({
+                url: myPluginData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'update_todo_task',
+                    nonce: myPluginData.todoListNonce,
+                    task_id: taskId,
+                    status: status
+                },
+                success: function(response) {
+                    if (response.success) {
+                        fetchTasks();
+                    } else {
+                        showMessage(response.data.message, false);
+                    }
                 }
-            }
+            });
         });
     });
-
-    // Toggle task completion
-    $('#todo-list').on('change', '.todo-item__checkbox', function() {
-        var taskId = $(this).closest('.todo-item').data('id');
-        var status = $(this).is(':checked') ? 'completed' : 'pending';
-
-        $.ajax({
-            url: myPluginData.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'update_todo_task',
-                nonce: myPluginData.todoListNonce,
-                task_id: taskId,
-                status: status
-            },
-            success: function(response) {
-                if (response.success) {
-                    fetchTasks();
-                } else {
-                    alert(response.data.message);
-                }
-            }
-        });
-    });
-});
-
 });

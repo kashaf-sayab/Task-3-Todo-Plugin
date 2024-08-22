@@ -190,4 +190,9 @@
     background-color: rgb(243, 237, 232);
     border-radius: 5px;
   }
-  
+  .message {
+    display: none; 
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
