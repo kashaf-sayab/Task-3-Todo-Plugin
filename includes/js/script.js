@@ -1,13 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
-    const messageElement = document.getElementById('message'); 
 
     function showMessage(message, isSuccess) {
+        const messageElement = document.getElementById('message');
+        
         messageElement.textContent = message;
-        messageElement.style.color = isSuccess ? 'blue' : 'red'; 
-        messageElement.style.display = 'block';
+        messageElement.style.color = 'black'; 
+        messageElement.style.display = 'block'
+        messageElement.style.padding = '10px';
+        messageElement.style.borderRadius = '5px';
+        messageElement.style.backgroundColor = isSuccess ? 'rgba(135, 206, 250, 0.3)' : 'rgba(255, 99, 71, 0.3)';
     }
+    
 
     if (loginForm) {
         loginForm.addEventListener('submit', function(event) {
