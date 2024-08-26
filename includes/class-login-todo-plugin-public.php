@@ -15,11 +15,21 @@ class login_todo_Plugin_Public {
         wp_enqueue_style('custom-authentication-css', plugin_dir_url(__FILE__) . 'css/styles.css');
         wp_enqueue_script('custom-authentication-js', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery'), null, true);
     
+        $login_page = get_page_by_path('ltp_login');
+        $login_url = $login_page ? get_permalink($login_page) : '';
+    
+        $todo_list_page = get_page_by_path('ltp_todo');
+        $todo_list_url = $todo_list_page ? get_permalink($todo_list_page) : '';
+    
         wp_localize_script('custom-authentication-js', 'myPluginData', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'todoListNonce' => wp_create_nonce('todo-list-nonce')
+            'todoListNonce' => wp_create_nonce('todo-list-nonce'),
+            'loginNonce' => wp_create_nonce('login-nonce'),
+            'todo_list_url' => $todo_list_url,
+            'login_page_url' => $login_url
         ));
     }
+    
 
      public function display_registration_form() {
         if (is_user_logged_in() && !current_user_can('administrator')) {

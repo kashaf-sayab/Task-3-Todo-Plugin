@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 success: function(response) {
                     if (response.success) {
-                        window.location.href = 'index.php/to-do-list/';
+                        window.location.href = myPluginData.todo_list_url;
                     } else {
                         showMessage(response.data.message, false);
                     }
@@ -133,13 +133,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 uname: uname,
                 email: email,
                 password: password,
-                nonce: myPluginData.todoListNonce
+                nonce: myPluginData.loginNonce
             },
             success: function(response) {
                 if (response.success) {
                     showMessage('Registration successful! Redirecting to login...', true);
                     setTimeout(function() {
-                        window.location.href = 'index.php/login/';
+                        window.location.href = myPluginData.login_page_url;
                     }, 1000);
                 } else {
                     showMessage(response.data.message, false);
