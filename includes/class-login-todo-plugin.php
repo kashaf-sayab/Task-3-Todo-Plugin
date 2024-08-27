@@ -7,8 +7,6 @@ if (!defined('ABSPATH')) {
 class login_todo_plugin {
 
     public function __construct() {
-        $this->plugin_name = 'login-todo-plugin';
-        $this->version = '1.0.0';
 
         // Load dependencies
         $this->load_dependencies();
@@ -25,7 +23,6 @@ class login_todo_plugin {
         $plugin_public = new login_todo_Plugin_Public ();
 
         add_action('wp_enqueue_scripts', array($plugin_public, 'enqueue_assets'));
-
         // Shortcodes
         add_shortcode('ltp_register', array($plugin_public, 'display_registration_form'));
         add_shortcode('ltp_login', array($plugin_public, 'display_login_form'));

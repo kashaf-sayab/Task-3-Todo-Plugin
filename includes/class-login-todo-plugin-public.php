@@ -24,7 +24,6 @@ class login_todo_Plugin_Public {
         wp_localize_script('custom-authentication-js', 'myPluginData', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'todoListNonce' => wp_create_nonce('todo-list-nonce'),
-            'loginNonce' => wp_create_nonce('login-nonce'),
             'todo_list_url' => $todo_list_url,
             'login_page_url' => $login_url
         ));

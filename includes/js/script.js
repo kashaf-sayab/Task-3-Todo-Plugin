@@ -133,11 +133,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 uname: uname,
                 email: email,
                 password: password,
-                nonce: myPluginData.loginNonce
+                nonce: myPluginData.todoListNonce
             },
             success: function(response) {
                 if (response.success) {
-                    showMessage('Registration successful! Redirecting to login...', true);
+                    showMessage('Registration successful!', true);
                     setTimeout(function() {
                         window.location.href = myPluginData.login_page_url;
                     }, 1000);

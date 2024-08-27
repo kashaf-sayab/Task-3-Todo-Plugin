@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Login To-Do Plugin
+Plugin Name: login-todo-plugin
 Plugin URI:  https://example.com/
 Description: A plugin to handle user registration, login, and to-do list management.
 Version:     1.0
