@@ -179,9 +179,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
+            
         }
 
-
+    
+        fetchTasks();
+    
         $('#todo-form').on('submit', function(e) {
             e.preventDefault();
             var task = $('#todo-item').val();
