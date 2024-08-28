@@ -1,5 +1,4 @@
 <?php
-// Exit if accessed directly
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -8,10 +7,8 @@ class login_todo_plugin {
 
     public function __construct() {
 
-        // Load dependencies
         $this->load_dependencies();
 
-        // Register public hooks
         $this->define_public_hooks();
     }
 
@@ -20,9 +17,10 @@ class login_todo_plugin {
     }
 
     private function define_public_hooks() {
-        $plugin_public = new login_todo_Plugin_Public ();
+        $plugin_public = new login_todo_Plugin_Public();
 
         add_action('wp_enqueue_scripts', array($plugin_public, 'enqueue_assets'));
+
         // Shortcodes
         add_shortcode('ltp_register', array($plugin_public, 'display_registration_form'));
         add_shortcode('ltp_login', array($plugin_public, 'display_login_form'));
@@ -39,7 +37,8 @@ class login_todo_plugin {
         add_action('wp_ajax_fetch_todo_tasks', array($plugin_public, 'handle_fetch_todo_tasks'));
         add_action('wp_ajax_update_todo_task', array($plugin_public, 'handle_update_todo_task'));
         add_action('wp_ajax_delete_todo_task', array($plugin_public, 'handle_delete_todo_task'));
-     
+
+        add_action('template_redirect', array($plugin_public, 'restrict_access'));
     }
 
     public function run() {

@@ -8,18 +8,25 @@ class login_todo_Plugin_Public {
     private $version = '1.0.0';
 
     public function __construct() {
-        
+
     }
 
     public function enqueue_assets() {
         wp_enqueue_style('custom-authentication-css', plugin_dir_url(__FILE__) . 'css/styles.css');
         wp_enqueue_script('custom-authentication-js', plugin_dir_url(__FILE__) . 'js/script.js', array('jquery'), null, true);
     
-        $login_page = get_page_by_path('ltp_login');
-        $login_url = $login_page ? get_permalink($login_page) : '';
+        function get_page_url_by_shortcode($shortcode) {
+            $pages = get_pages();
+            foreach ($pages as $page) {
+                if (has_shortcode($page->post_content, $shortcode)) {
+                    return get_permalink($page->ID);
+                }
+            }
+            return '';
+        }
     
-        $todo_list_page = get_page_by_path('ltp_todo');
-        $todo_list_url = $todo_list_page ? get_permalink($todo_list_page) : '';
+        $login_url = get_page_url_by_shortcode('ltp_login');
+        $todo_list_url = get_page_url_by_shortcode('ltp_todo');
     
         wp_localize_script('custom-authentication-js', 'myPluginData', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -30,15 +37,10 @@ class login_todo_Plugin_Public {
     }
     
 
-     public function display_registration_form() {
-        if (is_user_logged_in() && !current_user_can('administrator')) {
-        wp_redirect(home_url('index.php/to-do-list/'));
-        exit;
-    }
-
+    public function display_registration_form() {
         ob_start();
         ?>
-         <div class="container">
+        <div class="container">
             <form action="register.php" method="POST" id="register-form">
                 <h1>Sign up!</h1>
                 <div id="message" class="message"></div>
@@ -50,7 +52,7 @@ class login_todo_Plugin_Public {
                 <input type="password" id="register-password" name="register-password" size="50" placeholder="password must be 8 characters" required><br>
                 <label for="confirm-password"> Confirm password</label><br>
                 <input type="password" id="register-confirm-password" name="password" size="50" placeholder="Re-enter password" required><br>
-                <button type="submit" title="click to Register" onclick="index.php">Register</button>
+                <button type="submit" title="click to Register">Register</button>
             </form>
         </div>
         <?php
@@ -59,33 +61,29 @@ class login_todo_Plugin_Public {
 
     public function register_user() {
         check_ajax_referer('todo-list-nonce', 'nonce');
-    
+
         $uname = sanitize_text_field($_POST['uname']);
         $email = sanitize_email($_POST['email']);
         $password = $_POST['password'];
-    
+
         if (empty($uname) || empty($email) || empty($password)) {
             wp_send_json_error(array('message' => 'All fields are required.'));
         }
-    
+
         if (username_exists($uname) || email_exists($email)) {
             wp_send_json_error(array('message' => 'Username or email already exists.'));
         }
-    
+
         $user_id = wp_create_user($uname, $password, $email);
-    
+
         if (is_wp_error($user_id)) {
             wp_send_json_error(array('message' => $user_id->get_error_message()));
         }
-    
+
         wp_send_json_success();
     }
-    
+
     public function display_login_form() {
-        if (is_user_logged_in() && !current_user_can('administrator')) {
-            wp_redirect(home_url('index.php/to-do-list/'));
-            exit;
-        }
         ob_start();
         ?>
         <div class="container">
@@ -105,12 +103,12 @@ class login_todo_Plugin_Public {
 
     public function login_user() {
         check_ajax_referer('todo-list-nonce', 'nonce');
-    
+
         $email = sanitize_email($_POST['email']);
         $password = $_POST['password'];
-    
+
         $user = wp_authenticate($email, $password);
-    
+
         if (is_wp_error($user)) {
             wp_send_json_error(array('message' => 'Invalid email or password.'));
         } else {
@@ -270,5 +268,32 @@ class login_todo_Plugin_Public {
         }
 
         wp_send_json_success(array('message' => 'Task deleted successfully.'));
+    }
+
+    public function restrict_access() {
+        if (is_user_logged_in()) {
+            if (is_page()) {
+                global $post;
+                $content = $post->post_content;
+                $contains_login_shortcode = has_shortcode($content, 'ltp_login');
+                $contains_register_shortcode = has_shortcode($content, 'ltp_register');
+                if (($contains_login_shortcode || $contains_register_shortcode) && !current_user_can('administrator')) {
+                    $todo_page_id = $this->get_page_id_by_shortcode('ltp_todo');
+                    $todo_page_url = get_permalink($todo_page_id);
+                    wp_redirect($todo_page_url);
+                    exit;
+                }
+            }
+        }
+    }
+    
+    private function get_page_id_by_shortcode($shortcode) {
+        $pages = get_pages();
+        foreach ($pages as $page) {
+            if (has_shortcode($page->post_content, $shortcode)) {
+                return $page->ID;
+            }
+        }
+        return 0;
     }
 }
