@@ -39,8 +39,10 @@ class login_todo_plugin {
         add_action('wp_ajax_delete_todo_task', array($plugin_public, 'handle_delete_todo_task'));
 
         add_action('template_redirect', array($plugin_public, 'restrict_access'));
+        
     }
 
     public function run() {
+    
     }
 }

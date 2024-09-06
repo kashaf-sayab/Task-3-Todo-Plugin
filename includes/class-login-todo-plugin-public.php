@@ -3,12 +3,14 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-
+use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 class login_todo_Plugin_Public {
     private $version = '1.0.0';
 
     public function __construct() {
-
+              // Register REST API routes
+            add_action('rest_api_init', array($this, 'register_rest_api_routes'));
     }
 
     public function enqueue_assets() {
@@ -35,7 +37,6 @@ class login_todo_Plugin_Public {
             'login_page_url' => $login_url
         ));
     }
-    
 
     public function display_registration_form() {
         ob_start();
@@ -191,7 +192,7 @@ class login_todo_Plugin_Public {
 
         $tasks = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM $table_name WHERE user_id = %d",
+                "SELECT id, task, status FROM $table_name WHERE user_id = %d",
                 $user_id
             ),
             ARRAY_A
@@ -212,24 +213,15 @@ class login_todo_Plugin_Public {
         }
 
         global $wpdb;
-        $user_id = get_current_user_id();
-        $task_id = sanitize_text_field($_POST['task_id']);
+        $task_id = intval($_POST['task_id']);
         $status = sanitize_text_field($_POST['status']);
-
-        $valid_statuses = ['pending', 'completed'];
-        if (!in_array($status, $valid_statuses)) {
-            wp_send_json_error(array('message' => 'Invalid status.'));
-        }
-
+        $user_id = get_current_user_id();
         $table_name = $wpdb->prefix . 'to_do_list';
 
         $result = $wpdb->update(
             $table_name,
             array('status' => $status),
-            array(
-                'id' => $task_id,
-                'user_id' => $user_id
-            ),
+            array('id' => $task_id, 'user_id' => $user_id),
             array('%s'),
             array('%d', '%d')
         );
@@ -249,17 +241,13 @@ class login_todo_Plugin_Public {
         }
 
         global $wpdb;
+        $task_id = intval($_POST['task_id']);
         $user_id = get_current_user_id();
-        $task_id = sanitize_text_field($_POST['task_id']);
-
         $table_name = $wpdb->prefix . 'to_do_list';
 
         $result = $wpdb->delete(
             $table_name,
-            array(
-                'id' => $task_id,
-                'user_id' => $user_id
-            ),
+            array('id' => $task_id, 'user_id' => $user_id),
             array('%d', '%d')
         );
 
@@ -296,4 +284,198 @@ class login_todo_Plugin_Public {
         }
         return 0;
     }
+    /**
+     * Register all REST API routes
+     */
+    public function register_rest_api_routes() {
+        $this->fetch_user_tasks_api_routes();
+        $this->add_user_task_api_routes();
+        $this->update_user_task_api_routes();
+    }
+
+    /**
+     * Register route to fetch user tasks
+     */
+    public function fetch_user_tasks_api_routes() {
+        register_rest_route('todolist/v1', '/tasks/(?P<user_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_user_tasks'), 
+        ));
+    }
+
+    /**
+     * Callback to get user tasks
+     */
+    public function get_user_tasks($data) {
+        global $wpdb;
+        $user_id = intval($data['user_id']);
+
+        if ($user_id <= 0) {
+            return new WP_Error('invalid_user_id', 'Invalid user ID provided.', array('status' => 400));
+        }
+
+        $tasks = $wpdb->get_results(
+            $wpdb->prepare("SELECT * FROM {$wpdb->prefix}to_do_list WHERE user_id = %d", $user_id),
+            ARRAY_A
+        );
+
+        if (empty($tasks)) {
+            $tasks = array(); 
+        }
+
+        return new WP_REST_Response($tasks, 200);
+    }
+
+    /**
+     * Register route to add user task
+     */
+    public function add_user_task_api_routes() {
+        register_rest_route('todolist/v1', '/tasks/add', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'add_user_task'),
+            'args' => array(
+                'task' => array(
+                    'required' => true,
+                    'validate_callback' => function($param, $request, $key) {
+                        return !empty($param);
+                    }
+                ),
+                'status' => array(
+                    'required' => true,
+                    'validate_callback' => function($param, $request, $key) {
+                        return in_array($param, array('pending', 'completed'), true);
+                    }
+                ),
+            ),
+        ));
+    }
+
+    /**
+     * Callback to add user task
+     */
+    public function add_user_task($data) {
+        global $wpdb;
+        $user_id = get_current_user_id('user-id');
+        $task = sanitize_text_field($data['task']);
+        $status = sanitize_text_field($data['status']);
+
+        if ($user_id <= 0) {
+            return new WP_Error('invalid_user_id', 'Invalid user ID provided.', array('status' => 400));
+        }
+
+        
+        $wpdb->insert(
+            "{$wpdb->prefix}to_do_list",
+            array(
+                'user_id' => $user_id,
+                'task' => $task,
+                'status' => $status,
+            ),
+            array('%d', '%s', '%s')
+        );
+
+        if ($wpdb->insert_id) {
+            return new WP_REST_Response(array('task_id' => $wpdb->insert_id), 201);
+        } else {
+            return new WP_Error('db_insert_error', 'Failed to insert task.', array('status' => 500));
+        }
+    }
+
+    /**
+     * Register route to update user task
+     */
+    public function update_user_task_api_routes() {
+        register_rest_route('todolist/v1', '/tasks/update', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'update_user_task'),
+            'args' => array(
+                'task_id' => array(
+                    'required' => true,
+                    'validate_callback' => function($param, $request, $key) {
+                        return !empty($param);
+                    }
+                ),
+                'status' => array(
+                    'required' => true,
+                    'validate_callback' => function($param, $request, $key) {
+                        return in_array($param, array('pending', 'completed'), true);
+                    }
+                ),
+            ),
+        ));
+    }
+
+    /**
+     * Callback to update user task
+     */
+    public function update_user_task($data) {
+        global $wpdb;
+        $user_id = get_current_user_id();
+        $task_id = intval($data['task_id']);
+        $status = sanitize_text_field($data['status']);
+
+        if ($user_id <= 0) {
+            return new WP_Error('invalid_user_id', 'Invalid user ID provided.', array('status' => 400));
+        }
+
+        $updated = $wpdb->update(
+            "{$wpdb->prefix}to_do_list",
+            array('status' => $status),
+            array(
+                'id' => $task_id,
+                'user_id' => $user_id
+            ),
+            array('%s'),
+            array('%d', '%d')
+        );
+
+        if (false === $updated) {
+            return new WP_Error('db_update_error', 'Failed to update task.', array('status' => 500));
+        }
+
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    public function check_jwt_authentication($request) {
+        $auth_header = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+    
+        if (empty($auth_header)) {
+            return new WP_Error('rest_forbidden', 'JWT Token is missing.', array('status' => 403));
+        }
+    
+
+        $auth_header = str_replace('Bearer ', '', $auth_header);
+    
+        try {
+            $secret = JWT_AUTH_SECRET_KEY;
+    
+            
+            $decoded = JWT::decode($auth_header, new Key($secret, 'HS256'));
+    
+        
+            $now = time();
+            if (isset($decoded->exp) && $decoded->exp < $now) {
+                return new WP_Error('rest_forbidden', 'JWT Token has expired.', array('status' => 403));
+            }
+    
+            
+            if (isset($decoded->data->user_id)) {
+                $user = get_user_by('id', $decoded->data->user_id);
+                if ($user) {
+                    wp_set_current_user($user->ID);
+                    return true;
+                }
+            }
+    
+        } catch (Exception $e) {
+            return new WP_Error('rest_forbidden', 'Invalid JWT Token: ' . $e->getMessage(), array('status' => 403));
+        }
+    
+        return new WP_Error('rest_forbidden', 'JWT Token is invalid.', array('status' => 403));
+    }
+    
+}
+
+if (class_exists('login_todo_Plugin_Public')) {
+    new login_todo_Plugin_Public();
 }
