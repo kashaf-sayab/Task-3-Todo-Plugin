@@ -1,4 +1,4 @@
-# C To-Do-list Plugin
+# To-Do-list Plugin
    A custom WordPress plugin that provides user authentication with custom login and registration forms, along with a to-do list feature.
 #  Motivation
    The project was created to make it easier to manage user login, registration, and task tracking in WordPress. While WordPress handles user management, it lacks simple, customizable login and registration forms. Additionally, having a built-in to-do list feature helps users stay organized. This plugin was developed to address these needs, providing an easy-to-use solution for both custom authentication and task management.
@@ -21,11 +21,10 @@ For consistency and readability, this project follows the WordPress Coding Stand
  * __JWT Authentication:__ Secures API endpoints by requiring a JWT for authentication. Tokens are generated and validated to ensure that only authenticated users can interact with the API.
  * __WP CLI:__ Provides command-line tools for managing tasks within the plugin, enabling administrators to perform operations directly from the terminal.
  # Installation
-      To install and set up this plugin,follow these steps:
-
+   __To install and set up this plugin,follow these steps:__
 1.__Download the Plugin:__
    Download the ZIP file from this repository: Download ZIP.
-  **install the Plugin:**
+ * **install the Plugin:**
 
 2. __Log in to your WordPress admin dashboard__
          Go to Plugins > Add New > Upload Plugin.
@@ -38,9 +37,9 @@ For consistency and readability, this project follows the WordPress Coding Stand
       * To-Do List Page
 4. __Add Shortcodes:__
       Edit each page and add the appropriate shortcode to display the forms or to-do list:
-      * For the login form, use [ltp_login]
-      * For the registration form, use [ltp_register]
-      * For the to-do list, use [ltp_todo]
+      * For the login form, use __[ltp_login]__
+      * For the registration form, use __[ltp_register]__
+      * For the to-do list, use __[ltp_todo]__
 5. __Publish the Pages:__
     Publish each page after adding the shortcodes.
 # Working Video
