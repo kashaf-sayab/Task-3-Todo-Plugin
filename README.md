@@ -1,4 +1,4 @@
-# Custom WordPress Login,Register Form and To-Do Plugin
+# C To-Do-list Plugin
    A custom WordPress plugin that provides user authentication with custom login and registration forms, along with a to-do list feature.
 #  Motivation
    The project was created to make it easier to manage user login, registration, and task tracking in WordPress. While WordPress handles user management, it lacks simple, customizable login and registration forms. Additionally, having a built-in to-do list feature helps users stay organized. This plugin was developed to address these needs, providing an easy-to-use solution for both custom authentication and task management.
